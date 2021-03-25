@@ -110,11 +110,13 @@ LENDING_LOOP:
 					if status == FULLY_FILLED_ORDER {
 						logrus.Infof("order (id=%v) filled", orderID)
 						nextStep = StepCheckAvailableUSDT
+						timer.Stop()
 						continue LENDING_LOOP
 					}
 				case <-timer.C:
 					logrus.Warnf("timeout when waiting for orders to be filled")
 					nextStep = StepCancelOrder
+					ticker.Stop()
 					continue LENDING_LOOP
 				}
 			}
