@@ -87,7 +87,7 @@ LENDING_LOOP:
 			orderID, err = CreateLendOrder(cli, currentAvailableUSDT, rate)
 			if err != nil {
 				logrus.Warnf("failed to create order: %v", err)
-				nextStep = StepGetMinDayIntRate
+				nextStep = StepCheckAvailableUSDT
 				continue LENDING_LOOP
 			}
 
