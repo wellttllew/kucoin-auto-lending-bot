@@ -59,9 +59,10 @@ LENDING_LOOP:
 			currentAvailableUSDT, err = GetCurrentAvailableUSDT(cli, config.ReservedAmount)
 			if err != nil {
 				logrus.Warnf("failed to get available USDT: %v ", err)
+				time.Sleep(time.Second * 1)
 				continue LENDING_LOOP
 			}
-			if currentAvailableUSDT < epsilon {
+			if currentAvailableUSDT < minimumOrderAmount {
 				logrus.Warnf("no enough amount available : %v ", currentAvailableUSDT)
 				time.Sleep(time.Minute * 5)
 				continue LENDING_LOOP
@@ -293,6 +294,7 @@ func CancelOrder(cli *kucoin.ApiService, orderID string) error {
 
 // a float number that is small enough
 const epsilon float64 = 0.000000001
+const minimumOrderAmount float64 = 10
 
 // configs
 type ConfigType struct {
