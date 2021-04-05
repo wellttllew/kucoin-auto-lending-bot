@@ -70,7 +70,7 @@ LENDING_LOOP:
 			nextStep = StepGetMinDayIntRate
 
 		case StepGetMinDayIntRate:
-			rate, err = GetMinDayIntRate(cli)
+			rate, err = GetMinDayIntRate(cli, config.Term)
 			if err != nil {
 				logrus.Warnf("failed to get current minimum daily interest rate: %v", rate)
 				continue LENDING_LOOP
@@ -84,7 +84,7 @@ LENDING_LOOP:
 			nextStep = StepCreateOrder
 
 		case StepCreateOrder:
-			orderID, err = CreateLendOrder(cli, currentAvailableUSDT, rate)
+			orderID, err = CreateLendOrder(cli, config.Term, currentAvailableUSDT, rate)
 			if err != nil {
 				logrus.Warnf("failed to create order: %v", err)
 				nextStep = StepCheckAvailableUSDT
@@ -172,13 +172,13 @@ func GetCurrentAvailableUSDT(cli *kucoin.ApiService, reserved float64) (amount f
 }
 
 // get current minimum daily interest rate
-func GetMinDayIntRate(cli *kucoin.ApiService) (rate float64, err error) {
+func GetMinDayIntRate(cli *kucoin.ApiService, term string) (rate float64, err error) {
 
 	var orderLst kucoin.MarginMarketsModel
 
 	r, err := cli.MarginMarkets(map[string]string{
 		"currency": "USDT",
-		"term":     "7",
+		"term":     term,
 	})
 
 	if err != nil {
@@ -202,13 +202,13 @@ func GetMinDayIntRate(cli *kucoin.ApiService) (rate float64, err error) {
 	return minRate, nil
 }
 
-func CreateLendOrder(cli *kucoin.ApiService, amount float64, rate float64) (orderID string, err error) {
+func CreateLendOrder(cli *kucoin.ApiService, term string, amount float64, rate float64) (orderID string, err error) {
 
 	r, err := cli.CreateLendOrder(map[string]string{
 		"currency":     "USDT",
 		"size":         fmt.Sprint(amount),
 		"dailyIntRate": fmt.Sprint(rate),
-		"term":         "7",
+		"term":         term,
 	})
 
 	if err != nil {
@@ -303,6 +303,7 @@ type ConfigType struct {
 	APISecret       string  `json:"apiSecret"`
 	APIPassPhrase   string  `json:"apiPassPhrase"`
 	ReservedAmount  float64 `json:"reservedAmount"`
+	Term            string  `json:"term"`
 }
 
 // Load config from environment variable
@@ -334,6 +335,11 @@ func LoadConfigFromEnv() (*ConfigType, error) {
 	c.APIPassPhrase = os.Getenv("KUCOIN_API_PASSPHRASE")
 	if c.APIPassPhrase == "" {
 		return nil, fmt.Errorf("missing 'KUCOIN_API_PASSPHRASE' in environment variable")
+	}
+
+	c.Term = os.Getenv("TERM")
+	if c.Term == "" {
+		c.Term = "7"
 	}
 
 	return &c, nil
