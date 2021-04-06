@@ -59,12 +59,12 @@ LENDING_LOOP:
 			currentAvailableUSDT, err = GetCurrentAvailableUSDT(cli, config.ReservedAmount)
 			if err != nil {
 				logrus.Warnf("failed to get available USDT: %v ", err)
-				time.Sleep(time.Second * 1)
+				time.Sleep(time.Second * 10)
 				continue LENDING_LOOP
 			}
 			if currentAvailableUSDT < minimumOrderAmount {
 				logrus.Warnf("no enough amount available : %v ", currentAvailableUSDT)
-				time.Sleep(time.Minute * 5)
+				time.Sleep(time.Second * 30)
 				continue LENDING_LOOP
 			}
 			nextStep = StepGetMinDayIntRate
